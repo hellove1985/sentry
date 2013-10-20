@@ -13,15 +13,9 @@ Sentry includes several plugins by default. Builtin plugins are controlled via t
     INSTALLED_APPS = [
       ...
       'sentry.plugins.sentry_mail',
-      'sentry.plugins.sentry_servers',
       'sentry.plugins.sentry_urls',
       'sentry.plugins.sentry_useragents',
     ]
-
-.. data:: sentry.plugins.sentry_server
-    :noindex:
-
-    Enables auto tagging of servers.
 
 .. data:: sentry.plugins.sentry_urls
     :noindex:
@@ -65,6 +59,7 @@ The following extensions are available and maintained by members of the Sentry c
 * `sentry-trello <https://github.com/DamianZaremba/sentry-trello>`_
 * `sentry-webhooks <https://github.com/getsentry/sentry-webhooks>`_
 * `sentry-whatsapp <https://github.com/ecarreras/sentry-whatsapp>`_
+* `sentry-xmpp <https://github.com/chroto/sentry-xmpp>`_
 * `sentry-youtrack <https://github.com/bogdal/sentry-youtrack>`_
 
 Have an extension that should be listed here? Submit a `pull request <https://github.com/getsentry/sentry>`_ and we'll
