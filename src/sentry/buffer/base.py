@@ -38,6 +38,9 @@ class Buffer(object):
             'extra': extra,
         }, countdown=self.delay)
 
+    def process_pending(self):
+        return []
+
     def process(self, model, columns, filters, extra=None):
         update_kwargs = dict((c, F(c) + v) for c, v in columns.iteritems())
         if extra:

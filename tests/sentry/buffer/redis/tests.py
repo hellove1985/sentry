@@ -30,20 +30,10 @@ class RedisBufferTest(TestCase):
     def test_coerce_val_handles_unicode(self):
         assert self.buf._coerce_val(u'\u201d') == '”'
 
-    def test_make_key_response(self):
-        column = 'times_seen'
-        filters = {'pk': 1}
-        self.assertEquals(self.buf._make_key(Group, filters, column), 'sentry.group:88b48b31b5f100719c64316596b10b0f:times_seen')
-
-    def test_make_extra_key_response(self):
-        filters = {'pk': 1}
-        self.assertEquals(self.buf._make_extra_key(Group, filters), 'sentry.group:extra:88b48b31b5f100719c64316596b10b0f')
-
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.process_incr')
     def test_incr_delays_task(self, process_incr):
         model = mock.Mock()
+        model.__name__ = 'mock'
         columns = {'times_seen': 1}
         filters = {'pk': 1}
         self.buf.incr(model, columns, filters)
@@ -51,17 +41,16 @@ class RedisBufferTest(TestCase):
         process_incr.apply_async.assert_called_once_with(
             kwargs=kwargs, countdown=5)
 
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.process_incr', mock.Mock())
     def test_incr_does_buffer_to_conn(self):
         model = mock.Mock()
+        model.__name__ = 'mock'
         columns = {'times_seen': 1}
         filters = {'pk': 1}
         self.buf.incr(model, columns, filters)
         self.assertEquals(self.buf.conn.get('foo'), '1')
 
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.Buffer.process')
     def test_process_does_not_save_empty_results(self, process):
@@ -71,7 +60,6 @@ class RedisBufferTest(TestCase):
         self.buf.process(Group, columns, filters)
         self.assertFalse(process.called)
 
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.Buffer.process')
     def test_process_does_save_call_with_results(self, process):
@@ -82,7 +70,6 @@ class RedisBufferTest(TestCase):
         self.buf.process(Group, columns, filters)
         process.assert_called_once_with(Group, {'times_seen': 2}, filters, None)
 
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.Buffer.process')
     def test_process_does_clear_buffer(self, process):
@@ -93,7 +80,6 @@ class RedisBufferTest(TestCase):
         self.buf.process(Group, columns, filters)
         self.assertEquals(self.buf.conn.get('foo'), '0')
 
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
     @mock.patch('sentry.buffer.base.process_incr', mock.Mock())
     def test_incr_does_buffer_extra_to_conn(self):
@@ -104,7 +90,6 @@ class RedisBufferTest(TestCase):
         self.assertEquals(self.buf.conn.hget('extra', 'foo'), pickle.dumps('bar'))
 
     @mock.patch('sentry.buffer.redis.RedisBuffer._make_key', mock.Mock(return_value='foo'))
-    @mock.patch('sentry.buffer.redis.RedisBuffer._make_extra_key', mock.Mock(return_value='extra'))
     def test_process_saves_extra(self):
         group = Group.objects.create(project=Project(id=1))
         columns = {'times_seen': 1}
